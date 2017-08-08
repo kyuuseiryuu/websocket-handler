@@ -1,4 +1,4 @@
-var ws = require("nodejs-websocket");
+const ws = require("nodejs-websocket");
 
 /**
  * {
@@ -73,7 +73,7 @@ function setEventListener(key, callback) {
 }
 
 // Scream server example: "hi" -> "HI!!!"
-var server = ws.createServer(function (conn) {
+const server = ws.createServer(function (conn) {
 
     if (events['create']) {
         events['create'](conn);
@@ -81,7 +81,7 @@ var server = ws.createServer(function (conn) {
     joinConnections(conn);
 
     conn.on("text", function (str) {
-        var Message;
+        let Message;
         try {
             Message = JSON.parse(str);
             Message.type = 'JSON';

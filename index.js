@@ -1,2 +1,2 @@
-const Server = require('./src/Server');
-module.exports = Server;
+const Handler = require('./src/Handler');
+module.exports = Handler;
