@@ -1,5 +1,12 @@
 # websocket-server
 
+
+## Quick Start
+
+* clone this repository
+* run `npm i && npm start`
+* now server is running...
+
 ## API
 
 * `setEventListener(string: eventName, function: callback)`
