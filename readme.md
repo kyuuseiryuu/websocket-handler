@@ -23,7 +23,7 @@
 * `afterQuit`  connection quit manage after
 * `create` when connection create
 * `json` when connection receive a json string
-    > if have not this event listener, will try to call `text` event listener.
+    > when `json` event listener is undefined, will try to call `text` event listener.
 * `text`  when connection receive a text
 * `error` WebSocket event
 * `close` WebSocket event
