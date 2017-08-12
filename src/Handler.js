@@ -1,29 +1,7 @@
 const ws = require("nodejs-websocket");
 
 
-/**
- *
- * @param Message Must be a Object and have '_ACTION' property.
- */
-const requestMapping = {
-    actionMap: {
-        ACTION_NOT_FOUND: (Message, conn) => {
-            Message._RESPONSE = 'ACTION_NOT_FOUND';
-            conn.sendText(Message);
-        },
-    },
-    mapping: (Message, conn) => {
-        const action = Message['_ACTION'];
-        if (!action) {
-            return;
-        }
-        if (this.actionMap.hasOwnProperty(action)) {
-            this.actionMap[action](Message, conn);
-        } else {
-            this.actionMap['ACTION_NOT_FOUND'](Message, conn);
-        }
-    }
-};
+
 /**
  * {
  *   connectionKey: connection,
@@ -39,6 +17,42 @@ const connections = {};
  * @type {{}}
  */
 const events = {};
+
+/**
+ *  Default action map to solve action
+ * @type {{ACTION_NOT_FOUND: (function(*=, *))}}
+ */
+let actionMap = {
+    /**
+     * @return {boolean} Jump to call event.
+     */
+    ACTION_NOT_FOUND(Message, conn) {
+        Message.SYS_RESPONSE = 'ACTION_NOT_FOUND';
+        conn.sendText(Message);
+        return true;
+    }
+};
+
+/**
+ *
+ * @param Message Must be a Object and have '_ACTION' property.
+ * @param conn Current connection.
+ */
+function requestMapping(Message, conn) {
+    const action = Message['SYS_ACTION'];
+    if (!action) {
+        return false;
+    }
+    if (actionMap.hasOwnProperty(action)) {
+        return actionMap[action](Message, conn);
+    } else {
+        if (actionMap.hasOwnProperty('ACTION_NOT_FOUND')) {
+            return actionMap['ACTION_NOT_FOUND'](Message, conn);
+        }
+        return false;
+    }
+}
+
 /**
  *
  * @param callback function(connection)
@@ -87,6 +101,15 @@ function get(connectionKey, callback) {
 }
 
 
+function send(Message, conn) {
+    if (typeof Message === 'string') {
+        conn.sendText(Message);
+    } else {
+        conn.sendText(JSON.stringify(Message));
+    }
+}
+
+
 /**
  *
  * @param key WebSocket event
@@ -96,20 +119,20 @@ function setEventListener(key, callback) {
     events[key] = callback;
 }
 
+
+const setActionMap = (map) => {
+    actionMap = map;
+};
+
 /**
  *
  * @param actionName string
  * @param callback function(Message, connection)
  */
-function setAction(actionName, callback) {
-    requestMapping.actionMap[actionName] = callback;
-}
+const setAction = (actionName, callback) => {
+    actionMap[actionName] = callback;
+};
 
-function setActionMap(actionMap) {
-    requestMapping.actionMap = actionMap;
-}
-
-// Scream server example: "hi" -> "HI!!!"
 const server = ws.createServer(function (conn) {
 
     if (events['create']) {
@@ -121,16 +144,18 @@ const server = ws.createServer(function (conn) {
         let Message;
         try {
             Message = JSON.parse(str);
-            Message._MESSAGE_TYPE = 'JSON';
+            Message.SYS_MESSAGE_TYPE = 'JSON';
+            const jumpEvent = requestMapping(Message, conn);
+            if (jumpEvent) {
+                return;
+            }
             events['json'] ? events['json'](Message, conn) :
                 events['text'] ? events['text'](Message, conn) : null;
-            requestMapping.mapping(Message, conn);
         } catch (e) {
             // not JSON string
-            Message = { _RAW_TEXT: str };
-            Message._MESSAGE_TYPE = 'TEXT';
+            Message = { SYS_RAW_TEXT: str };
+            Message.SYS_MESSAGE_TYPE = 'TEXT';
             events['text'] ? events['text'](Message, conn) : null;
-            requestMapping.mapping(Message, conn);
         }
     });
 
@@ -162,4 +187,5 @@ module.exports = {
     listen: listen,
     setActionMap: setActionMap,
     setAction: setAction,
+    sendMessage: send,
 };
