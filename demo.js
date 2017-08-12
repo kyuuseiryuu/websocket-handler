@@ -31,19 +31,16 @@ Handler.setEventListener('afterJoin', calcTotalUser);
 Handler.setEventListener('afterQuit', calcTotalUser);
 
 Handler.setEventListener('json', function (Message, who) {
-    console.log('on json...');
-    Message.sender = who.key;
-    Message.to = who.key;
+    Message.FORM = who.key;
+    Message.TO = who.key;
     Handler.get(who.key, function (he) {
         he.send(JSON.stringify(Message));
     });
 });
 
 Handler.setEventListener('text', function (Message, sender) {
-    console.log('on text...');
-    Message.from = sender.key;
+    Message.FROM = sender.key;
     Handler.broadcast(function (each) {
-        Message.to = each.key;
         each.sendText(JSON.stringify(Message));
     });
 });
