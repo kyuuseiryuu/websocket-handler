@@ -120,19 +120,23 @@ function setEventListener(key, callback) {
 }
 
 
-const setActionMap = (map) => {
+function setActionMap(map) {
     actionMap = map;
-};
+}
 
 /**
  *
  * @param actionName string
  * @param callback function(Message, connection)
  */
-const setAction = (actionName, callback) => {
+function setAction(actionName, callback) {
     actionMap[actionName] = callback;
-};
+}
 
+/**
+ *
+ * @type {Server} WebSocket Server
+ */
 const server = ws.createServer(function (conn) {
 
     if (events['create']) {
