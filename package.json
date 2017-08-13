@@ -1,15 +1,29 @@
 {
-  "name": "websocket-handler",
-  "version": "1.0.0",
-  "description": "",
+  "name": "@kyuuseiryuu/websocket-handler",
+  "version": "0.0.1",
+  "description": "a simple websocket handler, a websocket web framwork.",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node demo.js"
   },
-  "author": "",
+  "author": "KyuuSeiryuu",
   "license": "MIT",
   "dependencies": {
     "nodejs-websocket": "^1.7.1"
-  }
+  },
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/HeyChioy/websocket-handler.git"
+  },
+  "keywords": [
+    "WebSocket",
+    "framwork",
+    "handler"
+  ],
+  "bugs": {
+    "url": "https://github.com/HeyChioy/websocket-handler/issues"
+  },
+  "homepage": "https://github.com/HeyChioy/websocket-handler#readme"
 }
