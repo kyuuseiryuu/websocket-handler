@@ -8,8 +8,14 @@ function calcTotalUser(conn, keys) {
 
 const ActionMap = {
   MSG_TO(Message, conn) {
+    Message.Data = { msg: 'OMG!'};
     Handler.sendMessage(Message, conn);
-  }
+  },
+  add({ a, b}, con) {
+   Handler.sendMessage({
+       result: a + b,
+   }, con);
+  },
 };
 
 Handler.setEventListener('create', function (conn) {
@@ -45,7 +51,7 @@ Handler.setEventListener('text', function (Message, sender) {
     });
 });
 
-Handler.setActionMap(ActionMap);
+Handler.setActionMap(ActionMap, 'action');
 
 Handler.setAction('FETCH_ONLINE', function (Message, conn) {
    const all = Handler.getAllConnectionsKey();

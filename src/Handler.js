@@ -18,6 +18,8 @@ const connections = {};
  */
 const events = {};
 
+let actionKey = 'SYS_ACTION';
+
 /**
  *  Default action map to solve action
  * @type {{ACTION_NOT_FOUND: (function(*=, *))}}
@@ -39,15 +41,15 @@ let actionMap = {
  * @param conn Current connection.
  */
 function requestMapping(Message, conn) {
-    const action = Message['SYS_ACTION'];
+    const action = Message[actionKey];
     if (!action) {
         return false;
     }
     if (actionMap.hasOwnProperty(action)) {
-        return actionMap[action](Message, conn);
+        return !actionMap[action](Message, conn);
     } else {
         if (actionMap.hasOwnProperty('ACTION_NOT_FOUND')) {
-            return actionMap['ACTION_NOT_FOUND'](Message, conn);
+            return !actionMap['ACTION_NOT_FOUND'](Message, conn);
         }
         return false;
     }
@@ -120,7 +122,8 @@ function setEventListener(key, callback) {
 }
 
 
-function setActionMap(map) {
+function setActionMap(map, defaultActionKey = 'SYS_ACTION') {
+    actionKey = defaultActionKey;
     actionMap = map;
 }
 
