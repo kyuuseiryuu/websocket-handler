@@ -7,15 +7,29 @@ function calcTotalUser(conn, keys) {
 }
 
 const ActionMap = {
-  MSG_TO(Message, conn) {
-    Message.Data = { msg: 'OMG!'};
-    Handler.sendMessage(Message, conn);
-  },
-  add({ a, b}, con) {
-   Handler.sendMessage({
-       result: a + b,
-   }, con);
-  },
+    MSG_TO(Message, conn) {
+        Message.Data = { msg: 'OMG!'};
+        Handler.sendMessage(Message, conn);
+    },
+    add({ a, b}, con) {
+        Handler.sendMessage({
+            result: a + b,
+        }, con);
+    },
+    tellMeNow(data, conn) {
+        Handler.broadcast(function (each) {
+            Handler.sendMessage({
+                action: 'alert',
+                now: new Date().getTime(),
+            }, each);
+        });
+    },
+    call({ call, data }) {
+        const msg = { action: call, data };
+        Handler.broadcast(function (each) {
+            Handler.sendMessage(msg, each);
+        });
+    }
 };
 
 Handler.setEventListener('create', function (conn) {
@@ -30,7 +44,7 @@ Handler.setEventListener('create', function (conn) {
 });
 
 Handler.setEventListener('close', function (conn) {
-   console.log('The connection: ' + conn.key + ' Quit...');
+    console.log('The connection: ' + conn.key + ' Quit...');
 });
 
 Handler.setEventListener('afterJoin', calcTotalUser);
