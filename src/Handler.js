@@ -23,7 +23,17 @@ const connections = {};
  * }
  * @type {{}}
  */
-const events = {};
+const events = {
+  create () {},
+  error () {},
+  close () {},
+  json () {},
+  text () {},
+  beforeJoin () {},
+  afterJoin () {},
+  beforeQuit () {},
+  afterQuit () {}
+};
 
 let actionKey = 'SYS_ACTION';
 
@@ -73,9 +83,9 @@ function broadcast(callback) {
  * @param conn This connection will join to connections.
  */
 function joinConnections(conn) {
-  events['beforeJoin'] ? events['beforeJoin'](conn, getAllConnectionsKey()) : null;
+  events.beforeJoin(conn, getAllConnectionsKey());
   connections[conn.key] = conn;
-  events['afterJoin'] ? events['afterJoin'](conn, getAllConnectionsKey()) : null;
+  events.afterJoin(conn, getAllConnectionsKey());
 }
 
 /**
@@ -83,9 +93,9 @@ function joinConnections(conn) {
  * @param conn This connection will delete from connections.
  */
 function quitConnections(conn) {
-  events['beforeQuit'] ? events['beforeQuit'](conn, getAllConnectionsKey()) : null;
+  events.beforeQuit(conn, getAllConnectionsKey());
   delete connections[conn.key];
-  events['afterQuit'] ? events['afterQuit'](conn, getAllConnectionsKey()) : null;
+  events.afterQuit(conn, getAllConnectionsKey());
 }
 
 /**
@@ -145,9 +155,7 @@ function setAction(actionName, callback) {
  */
 const server = ws.createServer(function (conn) {
 
-  if (events['create']) {
-    events['create'](conn);
-  }
+  events.create(conn);
   joinConnections(conn);
 
 
@@ -158,17 +166,17 @@ const server = ws.createServer(function (conn) {
       jumpEvent = requestMapping(Message, conn);
     }
     if (jumpEvent) return
-    events['json'] ? events['json'](str, conn) :
-      events['text'] ? events['text'](str, conn) : null;
+    !events.json(str, conn) ? events.text(str, conn) : null
   });
 
   conn.on("close", function () {
     quitConnections(conn);
-    events['close'] ? events['close'](conn) : null;
+    events.close(conn);
   });
 
   conn.on('error', function (conn) {
-    events['error'] ? events['error'](conn) : null;
+    quitConnections(conn);
+    events.error(conn);
   });
 });
 
