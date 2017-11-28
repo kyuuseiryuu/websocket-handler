@@ -1,6 +1,6 @@
 {
   "name": "@kyuuseiryuu/websocket-handler",
-  "version": "0.0.2",
+  "version": "1.0.0",
   "description": "a simple websocket handler, a websocket web framwork.",
   "main": "index.js",
   "scripts": {
