@@ -27,8 +27,8 @@ const events = {
   create () {},
   error () {},
   close () {},
-  json () {},
-  text () {},
+  onJson () {},
+  onMessage () {},
   beforeJoin () {},
   afterJoin () {},
   beforeQuit () {},
@@ -166,7 +166,7 @@ const server = ws.createServer(function (conn) {
       jumpEvent = requestMapping(Message, conn);
     }
     if (jumpEvent) return
-    !events.json(str, conn) ? events.text(str, conn) : null
+    !events.onJson(str, conn) ? events.onMessage(str, conn) : null
   });
 
   conn.on("close", function () {
