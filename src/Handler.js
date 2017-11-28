@@ -2,11 +2,9 @@ const ws = require("nodejs-websocket");
 
 
 const tryToParseJson = (str) => {
-  let json;
   try {
-    json = JSON.parse(str)
+    return JSON.parse(str)
   } catch (e) {}
-  return json;
 }
 
 /**
@@ -166,7 +164,8 @@ const server = ws.createServer(function (conn) {
       jumpEvent = requestMapping(Message, conn);
     }
     if (jumpEvent) return
-    !events.onJson(str, conn) ? events.onMessage(str, conn) : null
+    if (Message) { events.onJson(Message, conn); }
+    events.onMessage(str, conn);
   });
 
   conn.on("close", function () {
