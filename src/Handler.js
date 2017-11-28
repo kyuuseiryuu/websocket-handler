@@ -1,6 +1,13 @@
 const ws = require("nodejs-websocket");
 
 
+const tryToParseJson = (str) => {
+  let json;
+  try {
+    json = JSON.parse(str)
+  } catch (e) {}
+  return json;
+}
 
 /**
  * {
@@ -25,14 +32,14 @@ let actionKey = 'SYS_ACTION';
  * @type {{ACTION_NOT_FOUND: (function(*=, *))}}
  */
 let actionMap = {
-    /**
-     * @return {boolean} Jump to call event.
-     */
-    ACTION_NOT_FOUND(Message, conn) {
-        Message.SYS_RESPONSE = 'ACTION_NOT_FOUND';
-        conn.sendText(Message);
-        return true;
-    }
+  /**
+   * @return {boolean} Jump to call event.
+   */
+  ACTION_NOT_FOUND(Message, conn) {
+    Message.SYS_RESPONSE = 'ACTION_NOT_FOUND';
+    conn.sendText(Message);
+    return true;
+  }
 };
 
 /**
@@ -41,18 +48,14 @@ let actionMap = {
  * @param conn Current connection.
  */
 function requestMapping(Message, conn) {
-    const action = Message[actionKey];
-    if (!action) {
-        return false;
-    }
-    if (actionMap.hasOwnProperty(action)) {
-        return !actionMap[action](Message, conn);
-    } else {
-        if (actionMap.hasOwnProperty('ACTION_NOT_FOUND')) {
-            return !actionMap['ACTION_NOT_FOUND'](Message, conn);
-        }
-        return false;
-    }
+  const action = Message[actionKey];
+  if (!action) {
+    return false;
+  }
+  if (actionMap.hasOwnProperty(action)) {
+    return actionMap[action](Message, conn);
+  }
+  return false;
 }
 
 /**
@@ -60,9 +63,9 @@ function requestMapping(Message, conn) {
  * @param callback function(connection)
  */
 function broadcast(callback) {
-    for(const conn in connections) {
-        callback(connections[conn]);
-    }
+  for(const conn in connections) {
+    callback(connections[conn]);
+  }
 }
 
 /**
@@ -70,9 +73,9 @@ function broadcast(callback) {
  * @param conn This connection will join to connections.
  */
 function joinConnections(conn) {
-    events['beforeJoin'] ? events['beforeJoin'](conn, getAllConnectionsKey()) : null;
-    connections[conn.key] = conn;
-    events['afterJoin'] ? events['afterJoin'](conn, getAllConnectionsKey()) : null;
+  events['beforeJoin'] ? events['beforeJoin'](conn, getAllConnectionsKey()) : null;
+  connections[conn.key] = conn;
+  events['afterJoin'] ? events['afterJoin'](conn, getAllConnectionsKey()) : null;
 }
 
 /**
@@ -80,9 +83,9 @@ function joinConnections(conn) {
  * @param conn This connection will delete from connections.
  */
 function quitConnections(conn) {
-    events['beforeQuit'] ? events['beforeQuit'](conn, getAllConnectionsKey()) : null;
-    delete connections[conn.key];
-    events['afterQuit'] ? events['afterQuit'](conn, getAllConnectionsKey()) : null;
+  events['beforeQuit'] ? events['beforeQuit'](conn, getAllConnectionsKey()) : null;
+  delete connections[conn.key];
+  events['afterQuit'] ? events['afterQuit'](conn, getAllConnectionsKey()) : null;
 }
 
 /**
@@ -90,7 +93,7 @@ function quitConnections(conn) {
  * @returns {Array} connections
  */
 function getAllConnectionsKey() {
-    return Object.keys(connections);
+  return Object.keys(connections);
 }
 
 /**
@@ -99,16 +102,16 @@ function getAllConnectionsKey() {
  * @param callback function(connect)
  */
 function get(connectionKey, callback) {
-    callback(connections[connectionKey]);
+  callback(connections[connectionKey]);
 }
 
 
 function send(Message, conn) {
-    if (typeof Message === 'string') {
-        conn.sendText(Message);
-    } else {
-        conn.sendText(JSON.stringify(Message));
-    }
+  if (typeof Message === 'string') {
+    conn.sendText(Message);
+  } else {
+    conn.sendText(JSON.stringify(Message));
+  }
 }
 
 
@@ -118,13 +121,13 @@ function send(Message, conn) {
  * @param callback event callback
  */
 function setEventListener(key, callback) {
-    events[key] = callback;
+  events[key] = callback;
 }
 
 
 function setActionMap(map, defaultActionKey = 'SYS_ACTION') {
-    actionKey = defaultActionKey;
-    actionMap = map;
+  actionKey = defaultActionKey;
+  actionMap = map;
 }
 
 /**
@@ -133,7 +136,7 @@ function setActionMap(map, defaultActionKey = 'SYS_ACTION') {
  * @param callback function(Message, connection)
  */
 function setAction(actionName, callback) {
-    actionMap[actionName] = callback;
+  actionMap[actionName] = callback;
 }
 
 /**
@@ -142,38 +145,31 @@ function setAction(actionName, callback) {
  */
 const server = ws.createServer(function (conn) {
 
-    if (events['create']) {
-        events['create'](conn);
+  if (events['create']) {
+    events['create'](conn);
+  }
+  joinConnections(conn);
+
+
+  conn.on("text", function (str) {
+    let Message = tryToParseJson(str);
+    let jumpEvent = false
+    if (Message) {
+      jumpEvent = requestMapping(Message, conn);
     }
-    joinConnections(conn);
+    if (jumpEvent) return
+    events['json'] ? events['json'](str, conn) :
+      events['text'] ? events['text'](str, conn) : null;
+  });
 
-    conn.on("text", function (str) {
-        let Message;
-        try {
-            Message = JSON.parse(str);
-            Message.SYS_MESSAGE_TYPE = 'JSON';
-            const jumpEvent = requestMapping(Message, conn);
-            if (jumpEvent) {
-                return;
-            }
-            events['json'] ? events['json'](Message, conn) :
-                events['text'] ? events['text'](Message, conn) : null;
-        } catch (e) {
-            // not JSON string
-            Message = { SYS_RAW_TEXT: str };
-            Message.SYS_MESSAGE_TYPE = 'TEXT';
-            events['text'] ? events['text'](Message, conn) : null;
-        }
-    });
+  conn.on("close", function () {
+    quitConnections(conn);
+    events['close'] ? events['close'](conn) : null;
+  });
 
-    conn.on("close", function () {
-        quitConnections(conn);
-        events['close'] ? events['close'](conn) : null;
-    });
-
-    conn.on('error', function (conn) {
-        events['error'] ? events['error'](conn) : null;
-    });
+  conn.on('error', function (conn) {
+    events['error'] ? events['error'](conn) : null;
+  });
 });
 
 /**
@@ -183,16 +179,16 @@ const server = ws.createServer(function (conn) {
  * @param callback
  */
 function listen(port, host, callback) {
-   server.listen(port, host, callback);
+  server.listen(port, host, callback);
 }
 
 module.exports = {
-    broadcast: broadcast,
-    getAllConnectionsKey: getAllConnectionsKey,
-    get: get,
-    setEventListener: setEventListener,
-    listen: listen,
-    setActionMap: setActionMap,
-    setAction: setAction,
-    sendMessage: send,
+  broadcast: broadcast,
+  getAllConnectionsKey: getAllConnectionsKey,
+  get: get,
+  setEventListener: setEventListener,
+  listen: listen,
+  setActionMap: setActionMap,
+  setAction: setAction,
+  sendMessage: send,
 };
