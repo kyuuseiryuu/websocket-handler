@@ -106,11 +106,11 @@ function getAllConnectionsKey() {
 
 /**
  *
- * @param connectionKey connection key
- * @param callback function(connect)
+ * @param connectionKey
+ * @return {*}
  */
-function get(connectionKey, callback) {
-  callback(connections[connectionKey]);
+function get(connectionKey) {
+  return connections[connectionKey];
 }
 
 

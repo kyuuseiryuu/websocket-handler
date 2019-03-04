@@ -7,6 +7,10 @@
 * run `npm i && npm start`
 * now server is running...
 
+## install
+
+yarn add https://github.com/kyuuseiryuu/websocket-handler
+
 ## API
 
 * `setEventListener(string: eventName, function: callback)`
