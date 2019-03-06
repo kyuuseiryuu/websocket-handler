@@ -24,22 +24,23 @@ export interface Events {
     afterQuit (connection: Connection): void,
 }
 export interface ActionCallback {
-    (connection: Connection): boolean;
+    (message: Message, from: Connection): boolean|void;
 }
 export interface ActionMap {
     [actionName: string]: ActionCallback;
 }
 
-declare namespace handler {
-    function broadcast(callback: BroadCastCallback): void;
-    function getAllConnectionsKey(): string[];
-    function getAllConnectionsKey(): string[];
-    function setEventListener(eventName: string, callback: EventCallback): string[];
-    function get(connectionKey: string): Connection;
-    function listen(port: number, host: string, callback: Function): void;
-    function sendMessage(message: Message, connection: Connection): void;
-    function setAction(actionName: string, callback: ActionCallback): void;
-    function setActionMap(map: ActionMap): void;
+export interface Handler {
+    broadcast(callback: BroadCastCallback): void;
+    getAllConnectionsKey(): string[];
+    getAllConnectionsKey(): string[];
+    setEventListener(eventName: string, callback: EventCallback): string[];
+    get(connectionKey: string): Connection;
+    listen(port: number, host: string, callback: Function): void;
+    sendMessage(message: Message, connection: Connection): void;
+    setAction(actionName: string, callback: ActionCallback): void;
+    setActionMap(map: ActionMap): void;
 }
 
-export = handler;
+export default Handler;
+
