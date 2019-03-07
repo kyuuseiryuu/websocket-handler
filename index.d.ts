@@ -7,7 +7,7 @@ export declare interface BroadCastCallback {
     (connection: Connection): void
 }
 export declare interface EventCallback {
-    (conn: Connection): void;
+    (conn: Connection, allConnectionKeys: string[]): void;
 }
 export interface Message {
     [key: string]: any;
