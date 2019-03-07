@@ -39,7 +39,7 @@ export interface Handler {
     listen(port: number, host: string, callback: Function): void;
     sendMessage(message: Message, connection: Connection): void;
     setAction(actionName: string, callback: ActionCallback): void;
-    setActionMap(map: ActionMap): void;
+    setActionMap(map: ActionMap, actionKey?: string): void;
 }
 
 declare const handler: Handler;
