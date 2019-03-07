@@ -42,5 +42,7 @@ export interface Handler {
     setActionMap(map: ActionMap): void;
 }
 
-export default Handler;
+declare const handler: Handler;
+
+export default handler;
 
